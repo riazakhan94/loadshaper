@@ -1,0 +1,88 @@
+---
+title: "loadshaper 1.1.1"
+author: "Md Riaz Ahmed Khan"
+output:
+  md_document:
+    variant: markdown_github
+---
+
+
+
+## R package loadshaper
+
+The goal of this R package is to project a base 8760 (electric) load shape in order to match a target peak and target energy (or, energy via target load factor). Two methods were developed and implemented. Generics methods like `summary`, `print`, `plot` can be applied to certain objects. A score metric was developed and implemented to assess the output in terms of retaining general time series property. 
+
+See [here](https://rpubs.com/riazakhan94/load_shape_match_peak_energy) for the description of the methods.
+
+
+# Example
+
+```{r}
+library(loadshaper)
+# base load shape
+input_8760 <- ercot[ercot$Year == 2019, ]$ERCOT
+pf_base <- mean(input_8760) / max(input_8760)
+max_base <- max(input_8760)
+
+message("Base Load Max:", max_base)
+message("Base Load Power Factor:", pf_base)
+```
+
+# Project to Different Load Factor
+
+
+## Higher Load Factor, Linear method
+```{r}
+y <- lslin(input_8760, target_max = max_base, target_lf = 0.65)
+summary(y)
+
+# Plot 
+plot(y, case = 1)
+plot(y, case = 2)
+
+# Score
+print(lscore(y, lag = 24))
+```
+## Higher Load Factor, Logistic method
+
+```{r}
+y <- lslog(input_8760, target_max = max_base, target_lf = 0.65,
+           k = 0.5, inf_pos = 0.2)
+summary(y)
+
+# Plot 
+plot(y, case = 1)
+plot(y, case = 2)
+
+# Score
+print(lscore(y, lag = 24))
+```
+
+## Smaller Load Factor, Linear method
+```{r}
+y <- lslog(input_8760, target_max = max_base, target_lf = 0.45,
+           k = 1, inf_pos = 0)
+summary(y)
+
+# Plot 
+plot(y, case = 1)
+plot(y, case = 2)
+
+# Score
+print(lscore(y, lag = 24))
+```
+
+
+
+## Smaller Load Factor, Logistic method
+```{r}
+y <- lslin(input_8760, target_max = max_base, target_lf = 0.45)
+summary(y)
+
+# Plot 
+plot(y, case = 1)
+plot(y, case = 2)
+
+# Score
+print(lscore(y, lag = 24))
+```
